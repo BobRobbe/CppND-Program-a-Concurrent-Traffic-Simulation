@@ -43,9 +43,10 @@ void MessageQueue<T>::send(T &&msg)
 
 TrafficLight::TrafficLight()
 {
-    //_type = ObjectType::trafficLight;
     _currentPhase = TrafficLightPhase::red;
 }
+
+TrafficLight::~TrafficLight() {}
 
 void TrafficLight::waitForGreen()
 {
@@ -84,21 +85,26 @@ void TrafficLight::cycleThroughPhases()
     // to the message queue using move semantics. The cycle duration should be a random value between 4 and 6 seconds.
     // Also, the while-loop should use std::this_thread::sleep_for to wait 1ms between two cycles.
 
-    int targetSwitchTime = 0;
-    int stopWatch = 0;
-
+    // prepare random generation
     std::random_device rd;
     std::mt19937 mt(rd());
     std::uniform_int_distribution<> distr(4000, 6000);
+    int targetPassedDuration = distr(mt);
+    int passedDuration;
+
+    std::chrono::time_point<std::chrono::system_clock> startTime = std::chrono::system_clock::now();
 
     while (true)
     {
-        if (stopWatch >= targetSwitchTime)
+        // how much milliseconds have passed since startTime?
+        passedDuration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now()-startTime).count();
+        // have we waited for at least targetPassedDuration milliseconds? (randomized between 4 and 6 seconds)
+        if (passedDuration >= targetPassedDuration)
         {
-            // targetSwitchTime has passend and its time to compute a new targetSwitchTime
-            // between 4 and 6 seconds (in milliseconds) and reset stopWatch
-            targetSwitchTime = distr(mt);
-            stopWatch = 0;
+            // targetPassedDuration has passend and its time to compute a new targetPassedDuration
+            // between 4 and 6 seconds (in milliseconds) and reset startTime
+            targetPassedDuration = distr(mt);
+            startTime = std::chrono::system_clock::now();
             
             std::unique_lock<std::mutex> uLock(_mtx);
             // toggle phase
@@ -114,11 +120,7 @@ void TrafficLight::cycleThroughPhases()
             // send update message to the message queue using move semantics.
             _messageQueue.send(std::move(_currentPhase));
 
-            uLock.unlock();
-        }
-        else
-        {
-            stopWatch++;
+            //uLock.unlock();
         }
 
         // sleep at every iteration to reduce CPU usage
