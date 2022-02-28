@@ -31,7 +31,7 @@ void MessageQueue<T>::send(T &&msg)
     // perform _queue modification under the lock
     std::lock_guard<std::mutex> uLock(_mutex);
 
-    // clear _queue
+    // clear _queue as only the latest state is important for waiting
     _queue.clear();
 
     // add msg to queue
@@ -119,8 +119,6 @@ void TrafficLight::cycleThroughPhases()
             
             // send update message to the message queue using move semantics.
             _messageQueue.send(std::move(_currentPhase));
-
-            //uLock.unlock();
         }
 
         // sleep at every iteration to reduce CPU usage
