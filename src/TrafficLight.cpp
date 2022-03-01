@@ -77,6 +77,11 @@ void TrafficLight::simulate()
     threads.emplace_back(std::thread(&TrafficLight::cycleThroughPhases, this));
 }
 
+// setup static random infrastructure
+std::random_device TrafficLight::rd;
+std::mt19937 TrafficLight::mt(rd());
+std::uniform_int_distribution<> TrafficLight::distr(4000, 6000);
+
 // virtual function which is executed in a thread
 void TrafficLight::cycleThroughPhases()
 {
@@ -85,10 +90,6 @@ void TrafficLight::cycleThroughPhases()
     // to the message queue using move semantics. The cycle duration should be a random value between 4 and 6 seconds.
     // Also, the while-loop should use std::this_thread::sleep_for to wait 1ms between two cycles.
 
-    // prepare random generation
-    std::random_device rd;
-    std::mt19937 mt(rd());
-    std::uniform_int_distribution<> distr(4000, 6000);
     int targetPassedDuration = distr(mt);
     int passedDuration;
 

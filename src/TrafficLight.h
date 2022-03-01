@@ -4,6 +4,8 @@
 #include <mutex>
 #include <deque>
 #include <condition_variable>
+#include <random>
+
 #include "TrafficObject.h"
 
 // forward declarations to avoid include cycle
@@ -60,6 +62,10 @@ private:
 
     TrafficLightPhase _currentPhase;
     MessageQueue<TrafficLightPhase> _messageQueue;
+
+    static std::random_device rd;
+    static std::mt19937 mt;
+    static std::uniform_int_distribution<> distr;
 
     // not used in this implementation
     //std::condition_variable _condition;
